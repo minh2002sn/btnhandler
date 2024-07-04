@@ -1,42 +1,13 @@
 @startuml Button FSM Diagram
 hide empty description
-' scale 1200 width
 
 [*]--> IDLE
-IDLE --> DEBOUNCE_1 : GPIO = 1\n----\n[start t1]
-IDLE --> IDLE : GPIO = 0
+IDLE --> IDLE : GPIO = last_state
+IDLE --> DEBOUNCE : GPIO != last_state \n----\n[start t_d]
 
-DEBOUNCE_1 --> DEBOUNCE_1 : t1 < 30
-DEBOUNCE_1 --> CHECK_1_CLICK_t1 : GPIO = 1\nt1 >= 30
-DEBOUNCE_1 --> IDLE : GPIO = 0\nt1 >= 30
+DEBOUNCE --> DEBOUNCE : t_d < 30
+DEBOUNCE --> IDLE : GPIO = last_state\nt_d >= 30
+DEBOUNCE --> IDLE : GPIO != last_state\nt_d >= 30\n----\n\[last_state = GPIO]\n[current_state = GPIO]
 
-CHECK_1_CLICK_t1 --> CHECK_1_CLICK_t1 : GPIO = 1\nt1 < 3000
-CHECK_1_CLICK_t1 --> IDLE : GPIO = 0\n500 <= t1 < 3000\n----\n[error hold]
-CHECK_1_CLICK_t1 --> CHECK_1_CLICK_t2 : GPIO = 0\nt1 < 500
-CHECK_1_CLICK_t1 --> HOLD : GPIO = 1\nt1 >= 3000\n----\n[hold]
-
-CHECK_1_CLICK_t2 --> CHECK_1_CLICK_t2 : t2 < 30\nor\n(GPIO = 0; t2 < 300)
-CHECK_1_CLICK_t2 --> DEBOUNCE_2 : GPIO = 1\n30 <= t2 < 300\n----\n[start t1]
-CHECK_1_CLICK_t2 --> IDLE : (GPIO = 0; t2 >= 300)\nor\n(GPIO = 1; t2 = 300)\n----\n[single click]
-
-DEBOUNCE_2 --> DEBOUNCE_2 : t1 < 30
-DEBOUNCE_2 --> IDLE : GPIO = 0\nt1 >= 30
-DEBOUNCE_2 --> CHECK_2_CLICK_t1 : GPIO = 1\nt1 >= 30
-
-CHECK_2_CLICK_t1 --> CHECK_2_CLICK_t1 : GPIO = 1\nt1 < 3000
-CHECK_2_CLICK_t1 --> HOLD : GPIO = 1\nt1 >= 3000
-CHECK_2_CLICK_t1 --> IDLE : GPIO = 0\n500 <= t1 < 3000\n----\n[error hold]
-CHECK_2_CLICK_t1 --> CHECK_2_CLICK_t2 : GPIO = 0\nt1 < 500\n----\n[start t2]
-
-CHECK_2_CLICK_t2 --> IDLE : GPIO = 1\n30 <= t2 < 300\n----\n[error 2 click]
-CHECK_2_CLICK_t2 --> IDLE : (GPIO = 0; t2 >= 300)\nor\n(GPIO = 1; t2 = 300)\n----\n[double click]
-CHECK_2_CLICK_t2 --> CHECK_2_CLICK_t2 : t2 < 30\nor\n(GPIO = 0; t2 < 300)
-
-HOLD --> CHECK_RELEASE_t2 : GPIO = 0\n----\n[start t2]
-HOLD --> HOLD : GPIO = 1
-
-CHECK_RELEASE_t2 --> CHECK_RELEASE_t2 : t2 < 30\nor\n(GPIO = 0; t2 < 300)
-CHECK_RELEASE_t2 --> IDLE : GPIO = 1\nt2 >= 30\n----\n[error release]
-CHECK_RELEASE_t2 --> IDLE : GPIO = 0\nt2 >= 300\n----\n[release]
 
 @enduml
