@@ -1,0 +1,29 @@
+@startuml Button FSM Diagram
+hide empty description
+scale 1200 width
+
+[*]--> IDLE
+IDLE --> CHECK_HIGH : current_state = 1\n----\n[start t]
+IDLE --> IDLE : current_state = 0
+
+CHECK_HIGH --> CHECK_HIGH : current_state = 1
+CHECK_HIGH --> CHECK_LOW : current_state = 0; t < 500\n----\n[start t]
+CHECK_HIGH --> HOLD : current_state = 1; t >= 3000\n----\n[hold()]\ncnt = 0
+CHECK_HIGH --> IDLE : current_state = 0; 500 <= t < 3000
+
+CHECK_LOW --> CHECK_LOW : current_state = 0; t < 300
+CHECK_LOW --> CHECK_HIGH : current_state = 1; t < 300; cnt = 0\n----\n[start t]\ncnt++
+CHECK_LOW --> CHECK_HIGH : current_state = 1; t < 300; cnt = 1\n----\n[start t]
+CHECK_LOW --> IDLE : current_state = 0; t >= 300; cnt = 0\n----\n[single_click()]
+CHECK_LOW --> IDLE : current_state = 0; t >= 300; cnt = 1\n----\n[double_click()]\ncnt=0
+CHECK_LOW --> CHECK_HIGH : current_state = 1; t = 300; cnt = 1\n----\n[double_click()]\ncnt=0\n[start t]
+CHECK_LOW --> CHECK_HIGH : current_state = 1; t = 300; cnt = 0\n----\n[single_click()]\n[start t]
+
+HOLD --> CHECK_RELEASE : current_state = 0\n----\n[start t]
+HOLD --> HOLD : current_state = 1
+
+CHECK_RELEASE --> CHECK_RELEASE : current_state = 0; t < 300
+CHECK_RELEASE --> CHECK_HIGH : current_state = 1; t = 300\n----\n[release()]\n[start t]
+CHECK_RELEASE --> IDLE : current_state = 0; t >= 300\n----\n[release()]
+
+@enduml
